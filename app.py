@@ -104,6 +104,7 @@ if not st.session_state.df.empty:
     else:
         filtered_df = df
 
+    filtered_df = filtered_df.sort_values(by='DateTime', ascending=False)
     st.dataframe(filtered_df, use_container_width=True)
 
     csv = filtered_df.to_csv(index=False).encode('utf-8')
@@ -141,5 +142,32 @@ if not st.session_state.df.empty:
         st.subheader("🎮 Gaming Expenses Breakdown")
         game_summary = gaming_data.groupby('Game_Item')['Amount'].sum()
         st.bar_chart(game_summary)
+
+    # ---------- Additional Bar Graphs ----------
+    with st.expander("💳 Spending by Payment Mode"):
+        st.subheader("💳 Spending by Payment Mode")
+        payment_data = df.groupby('Payment_Mode')['Amount'].sum().sort_values()
+        st.bar_chart(payment_data)
+
+    with st.expander("🏷️ Top 10 Products by Spending"):
+        st.subheader("🏷️ Top 10 Products by Spending")
+        top_products = df.groupby('Product')['Amount'].sum().sort_values(ascending=False).head(10)
+        st.bar_chart(top_products)
+
+    with st.expander("📈 Monthly Spending by Category"):
+        st.subheader("📈 Monthly Spending by Category")
+        pivot_table = df.pivot_table(values='Amount', index='Month', columns='Category', aggfunc='sum', fill_value=0)
+        st.bar_chart(pivot_table)
+
+    with st.expander("🗓️ Daily Spending This Month"):
+        st.subheader("🗓️ Daily Spending This Month")
+        current_month = datetime.today().strftime('%Y-%m')
+        df_current_month = df[df['Month'] == current_month]
+
+        if not df_current_month.empty:
+            daily_spending = df_current_month.groupby('Date')['Amount'].sum()
+            st.bar_chart(daily_spending)
+        else:
+            st.info("No expenses recorded for this month yet.")
 else:
     st.info("No expenses yet. Start adding some! 💡")
